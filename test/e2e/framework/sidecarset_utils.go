@@ -139,7 +139,7 @@ func (s *SidecarSetTester) CreateSidecarSet(sidecarSet *appsv1alpha1.SidecarSet)
 	return sidecarSet
 }
 
-func (s *SidecarSetTester) UpdateSidecarSet(sidecarSet *appsv1alpha1.SidecarSet) {
+func (s *SidecarSetTester) UpdateSidecarSet(sidecarSet *appsv1alpha1.SidecarSet) *appsv1alpha1.SidecarSet {
 	Logf("update sidecarSet(%s)", sidecarSet.Name)
 	sidecarSetClone := sidecarSet.DeepCopy()
 	err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
@@ -152,6 +152,8 @@ func (s *SidecarSetTester) UpdateSidecarSet(sidecarSet *appsv1alpha1.SidecarSet)
 		return updateErr
 	})
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	sidecarSetClone, _ = s.kc.AppsV1alpha1().SidecarSets().Get(sidecarSetClone.Name, metav1.GetOptions{})
+	return sidecarSetClone
 }
 
 func (s *SidecarSetTester) UpdatePod(pod *corev1.Pod) {

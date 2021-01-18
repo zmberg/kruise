@@ -18,10 +18,12 @@ package main
 
 import (
 	"flag"
+
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -37,6 +39,7 @@ import (
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	appsv1beta1 "github.com/openkruise/kruise/apis/apps/v1beta1"
+	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	"github.com/openkruise/kruise/pkg/controller"
 	"github.com/openkruise/kruise/pkg/util/gate"
 	// +kubebuilder:scaffold:imports
@@ -52,11 +55,13 @@ var (
 
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
+	scheme.AddUnversionedTypes(metav1.SchemeGroupVersion, &metav1.UpdateOptions{}, &metav1.DeleteOptions{})
 	_ = appsv1alpha1.AddToScheme(clientgoscheme.Scheme)
 	_ = appsv1beta1.AddToScheme(clientgoscheme.Scheme)
 
 	_ = appsv1alpha1.AddToScheme(scheme)
 	_ = appsv1beta1.AddToScheme(scheme)
+	_ = policyv1alpha1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 

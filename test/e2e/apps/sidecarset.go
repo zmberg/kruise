@@ -398,7 +398,7 @@ var _ = SIGDescribe("sidecarset", func() {
 			// update sidecarSet sidecar container
 			sidecarSetIn.Spec.Containers[0].Image = "busybox:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
 				UpdatedPods:      2,
@@ -435,7 +435,7 @@ var _ = SIGDescribe("sidecarset", func() {
 			// update sidecarSet sidecar container failed image
 			sidecarSetIn.Spec.Containers[0].Image = "busybox:failed"
 			tester.UpdateSidecarSet(sidecarSetIn)
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
 				UpdatedPods:      1,
@@ -447,7 +447,7 @@ var _ = SIGDescribe("sidecarset", func() {
 			// update sidecarSet sidecar container success image
 			sidecarSetIn.Spec.Containers[0].Image = "busybox:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
-			time.Sleep(time.Second * 60)
+			time.Sleep(time.Second)
 			except = &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
 				UpdatedPods:      2,
@@ -477,7 +477,7 @@ var _ = SIGDescribe("sidecarset", func() {
 			// update sidecarSet sidecar container
 			sidecarSetIn.Spec.Containers[0].Image = "busybox:latest"
 			tester.UpdateSidecarSet(sidecarSetIn)
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second)
 			// paused
 			sidecarSetIn.Spec.Strategy.Paused = true
 			tester.UpdateSidecarSet(sidecarSetIn)
@@ -535,14 +535,13 @@ var _ = SIGDescribe("sidecarset", func() {
 			}
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
-			tester.UpdateSidecarSet(sidecarSetIn)
 			except := &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
 				UpdatedPods:      1,
 				UpdatedReadyPods: 1,
 				ReadyPods:        2,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			// check pod image
 			pods, err = tester.GetSelectorPods(deploymentIn.Namespace, deploymentIn.Spec.Selector)
@@ -562,14 +561,13 @@ var _ = SIGDescribe("sidecarset", func() {
 			sidecarSetIn.Spec.Strategy.Selector = nil
 			tester.UpdateSidecarSet(sidecarSetIn)
 			time.Sleep(time.Second * 5)
-			tester.UpdateSidecarSet(sidecarSetIn)
 			except = &appsv1alpha1.SidecarSetStatus{
 				MatchedPods:      2,
 				UpdatedPods:      2,
 				UpdatedReadyPods: 2,
 				ReadyPods:        2,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image, and selector done"))
 		})
@@ -604,7 +602,7 @@ var _ = SIGDescribe("sidecarset", func() {
 				UpdatedReadyPods: 1,
 				ReadyPods:        2,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 
 			// update sidecarSet partition, update all pods
@@ -616,7 +614,7 @@ var _ = SIGDescribe("sidecarset", func() {
 				UpdatedReadyPods: 2,
 				ReadyPods:        2,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image, and partition done"))
@@ -652,7 +650,7 @@ var _ = SIGDescribe("sidecarset", func() {
 				UpdatedReadyPods: 0,
 				ReadyPods:        2,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 
 			// update sidecarSet sidecar container
@@ -664,7 +662,7 @@ var _ = SIGDescribe("sidecarset", func() {
 				UpdatedReadyPods: 4,
 				ReadyPods:        4,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade cold sidecar container image, and maxUnavailable done"))
 		})
@@ -694,7 +692,7 @@ var _ = SIGDescribe("sidecarset", func() {
 				UpdatedReadyPods: 0,
 				ReadyPods:        1,
 			}
-			time.Sleep(time.Minute)
+			time.Sleep(time.Second * 10)
 			tester.WaitForSidecarSetUpgradeComplete(sidecarSetIn, except)
 			ginkgo.By(fmt.Sprintf("sidecarSet upgrade init sidecar container, and don't upgrade done"))
 		})

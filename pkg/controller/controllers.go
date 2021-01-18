@@ -21,9 +21,11 @@ import (
 	"github.com/openkruise/kruise/pkg/controller/broadcastjob"
 	"github.com/openkruise/kruise/pkg/controller/cloneset"
 	"github.com/openkruise/kruise/pkg/controller/daemonset"
+	"github.com/openkruise/kruise/pkg/controller/podunavailablebudget"
 	"github.com/openkruise/kruise/pkg/controller/sidecarset"
 	"github.com/openkruise/kruise/pkg/controller/statefulset"
 	"github.com/openkruise/kruise/pkg/controller/uniteddeployment"
+
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -39,6 +41,7 @@ func init() {
 	controllerAddFuncs = append(controllerAddFuncs, sidecarset.Add)
 	controllerAddFuncs = append(controllerAddFuncs, statefulset.Add)
 	controllerAddFuncs = append(controllerAddFuncs, uniteddeployment.Add)
+	controllerAddFuncs = append(controllerAddFuncs, podunavailablebudget.Add)
 }
 
 func SetupWithManager(m manager.Manager) error {

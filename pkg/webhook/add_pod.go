@@ -18,9 +18,12 @@ package webhook
 
 import (
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+	policyv1alpha1 "github.com/openkruise/kruise/apis/policy/v1alpha1"
 	"github.com/openkruise/kruise/pkg/webhook/pod/mutating"
+	"github.com/openkruise/kruise/pkg/webhook/pod/validating"
 )
 
 func init() {
 	addHandlersWithGate(mutating.HandlerMap, &appsv1alpha1.SidecarSet{})
+	addHandlersWithGate(validating.HandlerMap, &policyv1alpha1.PodUnavailableBudget{})
 }

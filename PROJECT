@@ -32,4 +32,7 @@ resources:
 - group: apps
   kind: AdvancedCronJob
   version: v1alpha1
+- group: policy
+  kind: PodUnavailableBudget
+  version: v1alpha1
 version: "2"
