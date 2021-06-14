@@ -13,7 +13,7 @@ status: implementable
 
 # Pod Unavailable Budget Feature
 
-- In many voluntary disruption scenarios, PodUnavailableBudget can achieve the effect of preventing application disruption or SLA degradation through the application protection mechanism, which greatly improves the high availability of application services.
+- In voluntary disruption scenarios, PodUnavailableBudget can achieve the effect of preventing application disruption or SLA degradation, which greatly improves the high availability of application services.
 
 ## Table of Contents
 
@@ -25,9 +25,9 @@ any additional information provided beyond the standard proposal template.
   - [Table of Contents](#table-of-contents)
   - [Motivation](#motivation)
   - [Proposal](#proposal)
-    - [API Definition](#inject-containers)
-    - [Implement](#hot-upgrade)
-    - [Program Comparison]()
+    - [API Definition](#api-definition)
+    - [Implement](#implement)
+    - [Program Comparison](#program-comparison)
   - [User Cases](#user-cases)
     - [A Sample Case](#a-sample-case)
   - [Implementation History](#implementation-history)
