@@ -58,6 +58,14 @@ const (
 	// 1. Webhook for deletion operation of namespace, crd, deployment, statefulset, replicaset and workloads in Kruise.
 	// 2. ClusterRole for reading all resource types, because CRD validation needs to list the CRs of this CRD.
 	ResourcesDeletionProtection featuregate.Feature = "ResourcesDeletionProtection"
+
+	// Whether to enable pub capability, default: false
+	// Protection only pod deletion and eviction request
+	PodUnavailableBudgetDeleteGate featuregate.Feature = "PodUnavailableBudgetDeleteGate"
+
+	// Whether to enable pub capability, default: false
+	// Protection only pod update request
+	PodUnavailableBudgetUpdateGate featuregate.Feature = "PodUnavailableBudgetUpdateGate"
 )
 
 var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
@@ -68,6 +76,8 @@ var defaultFeatureGates = map[featuregate.Feature]featuregate.FeatureSpec{
 	PreDownloadImageForInPlaceUpdate: {Default: false, PreRelease: featuregate.Alpha},
 	CloneSetPartitionRollback:        {Default: false, PreRelease: featuregate.Alpha},
 	ResourcesDeletionProtection:      {Default: false, PreRelease: featuregate.Alpha},
+	PodUnavailableBudgetDeleteGate:   {Default: false, PreRelease: featuregate.Alpha},
+	PodUnavailableBudgetUpdateGate:   {Default: false, PreRelease: featuregate.Alpha},
 }
 
 func init() {
