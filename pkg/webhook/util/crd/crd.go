@@ -17,7 +17,9 @@ limitations under the License.
 package crd
 
 import (
+	"context"
 	"fmt"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"reflect"
 
 	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -62,7 +64,7 @@ func Ensure(client apiextensionsclientset.Interface, lister apiextensionslisters
 		if !reflect.DeepEqual(crd.Spec.Conversion.WebhookClientConfig, webhookConfig) {
 			newCRD := crd.DeepCopy()
 			newCRD.Spec.Conversion.WebhookClientConfig = webhookConfig.DeepCopy()
-			if _, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Update(newCRD); err != nil {
+			if _, err := client.ApiextensionsV1beta1().CustomResourceDefinitions().Update(context.Background(), newCRD, v1.UpdateOptions{}); err != nil {
 				return fmt.Errorf("failed to update CRD %s: %v", newCRD.Name, err)
 			}
 		}

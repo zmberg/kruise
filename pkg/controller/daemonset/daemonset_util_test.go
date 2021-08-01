@@ -393,8 +393,8 @@ func TestGetSchedulerNodeInfo(t *testing.T) {
 		t.Logf("\t%s", tt.Title)
 		extraAllowedPodNumber = tt.SetExtraAllowedPodNumber
 		nodeInfo := newSchedulerNodeInfo(tt.Node)
-		if nodeInfo.AllowedPodNumber() != tt.ExpectedAllowedPodNumber {
-			t.Errorf("actual allowed pod number = %v, want %v", nodeInfo.AllowedPodNumber(), tt.ExpectedAllowedPodNumber)
+		if nodeInfo.Allocatable.AllowedPodNumber != tt.ExpectedAllowedPodNumber {
+			t.Errorf("actual allowed pod number = %v, want %v", nodeInfo.Allocatable.AllowedPodNumber, tt.ExpectedAllowedPodNumber)
 		}
 	}
 }

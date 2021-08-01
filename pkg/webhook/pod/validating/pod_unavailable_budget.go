@@ -21,7 +21,7 @@ import (
 
 	"github.com/openkruise/kruise/pkg/control/pubcontrol"
 
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -57,7 +57,7 @@ func (p *PodCreateHandler) podUnavailableBudgetValidatingPod(ctx context.Context
 	newPod = &corev1.Pod{}
 	switch req.AdmissionRequest.Operation {
 	// filter out invalid Update operation, we only validate update Pod.MetaData, Pod.Spec
-	case admissionv1beta1.Update:
+	case admissionv1.Update:
 		//decode new pod
 		err := p.Decoder.Decode(req, newPod)
 		if err != nil {
@@ -65,7 +65,7 @@ func (p *PodCreateHandler) podUnavailableBudgetValidatingPod(ctx context.Context
 		}
 		oldPod = &corev1.Pod{}
 		if err = p.Decoder.Decode(
-			admission.Request{AdmissionRequest: admissionv1beta1.AdmissionRequest{Object: req.AdmissionRequest.OldObject}},
+			admission.Request{AdmissionRequest: admissionv1.AdmissionRequest{Object: req.AdmissionRequest.OldObject}},
 			oldPod); err != nil {
 			return false, "", err
 		}
@@ -79,7 +79,7 @@ func (p *PodCreateHandler) podUnavailableBudgetValidatingPod(ctx context.Context
 		dryRun = dryrun.IsDryRun(options.DryRun)
 
 	// filter out invalid Delete operation, only validate delete pods resources
-	case admissionv1beta1.Delete:
+	case admissionv1.Delete:
 		if req.AdmissionRequest.SubResource != "" {
 			klog.V(6).Infof("pod(%s.%s) AdmissionRequest operation(DELETE) subResource(%s), then admit", req.Namespace, req.Name, req.SubResource)
 			return true, "", nil
@@ -100,7 +100,7 @@ func (p *PodCreateHandler) podUnavailableBudgetValidatingPod(ctx context.Context
 		dryRun = dryrun.IsDryRun(deletion.DryRun)
 
 	// filter out invalid Create operation, only validate create pod eviction subresource
-	case admissionv1beta1.Create:
+	case admissionv1.Create:
 		// ignore create operation other than subresource eviction
 		if req.AdmissionRequest.SubResource != "eviction" {
 			klog.V(6).Infof("pod(%s.%s) AdmissionRequest operation(CREATE) Resource(%s) subResource(%s), then admit", req.Namespace, req.Name, req.Resource, req.SubResource)
@@ -123,7 +123,7 @@ func (p *PodCreateHandler) podUnavailableBudgetValidatingPod(ctx context.Context
 		}
 	}
 
-	isUpdated := req.AdmissionRequest.Operation == admissionv1beta1.Update
+	isUpdated := req.AdmissionRequest.Operation == admissionv1.Update
 	// returns true for pod conditions that allow the operation for pod without checking PUB.
 	if newPod.Status.Phase == corev1.PodSucceeded || newPod.Status.Phase == corev1.PodFailed ||
 		newPod.Status.Phase == corev1.PodPending || newPod.Status.Phase == "" || !newPod.ObjectMeta.DeletionTimestamp.IsZero() {

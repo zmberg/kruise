@@ -73,10 +73,6 @@ func setSidecarSetUpdateStratety(strategy *SidecarSetUpdateStrategy) {
 func setSidecarDefaultContainer(sidecarContainer *SidecarContainer) {
 	container := &sidecarContainer.Container
 	v1.SetDefaults_Container(container)
-	for i := range container.Ports {
-		p := &container.Ports[i]
-		v1.SetDefaults_ContainerPort(p)
-	}
 	for i := range container.Env {
 		e := &container.Env[i]
 		if e.ValueFrom != nil {
@@ -339,10 +335,6 @@ func SetDefaultPodSpec(in *corev1.PodSpec) {
 	for i := range in.InitContainers {
 		a := &in.InitContainers[i]
 		v1.SetDefaults_Container(a)
-		for j := range a.Ports {
-			b := &a.Ports[j]
-			v1.SetDefaults_ContainerPort(b)
-		}
 		for j := range a.Env {
 			b := &a.Env[j]
 			if b.ValueFrom != nil {
@@ -391,10 +383,6 @@ func SetDefaultPodSpec(in *corev1.PodSpec) {
 			a.ImagePullPolicy = corev1.PullAlways
 		}
 		v1.SetDefaults_Container(a)
-		for j := range a.Ports {
-			b := &a.Ports[j]
-			v1.SetDefaults_ContainerPort(b)
-		}
 		for j := range a.Env {
 			b := &a.Env[j]
 			if b.ValueFrom != nil {
@@ -438,10 +426,6 @@ func SetDefaultPodSpec(in *corev1.PodSpec) {
 	}
 	for i := range in.EphemeralContainers {
 		a := &in.EphemeralContainers[i]
-		for j := range a.EphemeralContainerCommon.Ports {
-			b := &a.EphemeralContainerCommon.Ports[j]
-			v1.SetDefaults_ContainerPort(b)
-		}
 		for j := range a.EphemeralContainerCommon.Env {
 			b := &a.EphemeralContainerCommon.Env[j]
 			if b.ValueFrom != nil {

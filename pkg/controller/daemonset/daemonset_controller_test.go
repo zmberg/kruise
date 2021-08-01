@@ -296,10 +296,9 @@ func TestReconcile(t *testing.T) {
 	recFn, requests := SetupTestReconcile(dsc)
 	g.Expect(add(mgr, recFn)).NotTo(gomega.HaveOccurred())
 
-	stopMgr, mgrStopped := StartTestManager(mgr, g)
+	_, mgrStopped := StartTestManager(mgr, g)
 
 	defer func() {
-		close(stopMgr)
 		mgrStopped.Wait()
 	}()
 

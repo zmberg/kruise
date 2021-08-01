@@ -17,7 +17,9 @@ limitations under the License.
 package imagepuller
 
 import (
+	"context"
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"math/rand"
 	"reflect"
 	"time"
@@ -116,7 +118,7 @@ func (su *statusUpdater) updateStatus(nodeImage *appsv1alpha1.NodeImage, newStat
 	newNodeImage := nodeImage.DeepCopy()
 	newNodeImage.Status = *newStatus
 
-	_, err = su.imagePullNodeClient.UpdateStatus(newNodeImage)
+	_, err = su.imagePullNodeClient.UpdateStatus(context.TODO(), newNodeImage, metav1.UpdateOptions{})
 	if err == nil {
 		su.previousStatus = newStatus
 	}

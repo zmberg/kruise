@@ -17,6 +17,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"time"
 
 	v1 "k8s.io/api/core/v1"
@@ -56,7 +57,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 		},
 	}
 
-	node, err = t.c.CoreV1().Nodes().Create(node)
+	node, err = t.c.CoreV1().Nodes().Create(context.TODO(), node, metav1.CreateOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 
 	fn := func() error {
 		return retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-			node, err = t.c.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+			node, err = t.c.CoreV1().Nodes().Get(context.TODO(), name, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}
@@ -88,7 +89,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 					},
 				},
 			}
-			node, err = t.c.CoreV1().Nodes().UpdateStatus(node)
+			node, err = t.c.CoreV1().Nodes().UpdateStatus(context.TODO(), node, metav1.UpdateOptions{})
 			return err
 		})
 	}
@@ -112,7 +113,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 					noNode = true
 				}
 			}
-			podList, err := t.c.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{FieldSelector: "spec.nodeName=" + name})
+			podList, err := t.c.CoreV1().Pods(v1.NamespaceAll).List(context.TODO(), metav1.ListOptions{FieldSelector: "spec.nodeName=" + name})
 			if err != nil {
 				klog.Errorf("Failed to get Pods of fake Node %s: %v", name, err)
 				return
@@ -120,7 +121,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 			for i := range podList.Items {
 				pod := &podList.Items[i]
 				if pod.DeletionTimestamp != nil && pod.DeletionGracePeriodSeconds != nil {
-					t.c.CoreV1().Pods(pod.Namespace).Delete(pod.Name, &metav1.DeleteOptions{GracePeriodSeconds: utilpointer.Int64Ptr(0)})
+					t.c.CoreV1().Pods(pod.Namespace).Delete(context.TODO(), pod.Name, metav1.DeleteOptions{GracePeriodSeconds: utilpointer.Int64Ptr(0)})
 				}
 			}
 			if len(podList.Items) == 0 && noNode {
@@ -134,7 +135,7 @@ func (t *NodeTester) CreateFakeNode(randStr string) (node *v1.Node, err error) {
 
 func (t *NodeTester) DeleteFakeNode(randStr string) error {
 	name := "fake-node-" + randStr
-	err := t.c.CoreV1().Nodes().Delete(name, &metav1.DeleteOptions{})
+	err := t.c.CoreV1().Nodes().Delete(context.TODO(), name, metav1.DeleteOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
@@ -142,7 +143,7 @@ func (t *NodeTester) DeleteFakeNode(randStr string) error {
 }
 
 func (t *NodeTester) ListRealNodesWithFake(randStr string) ([]*v1.Node, error) {
-	nodeList, err := t.c.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodeList, err := t.c.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

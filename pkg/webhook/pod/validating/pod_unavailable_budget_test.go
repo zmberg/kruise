@@ -27,7 +27,7 @@ import (
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
 	"github.com/openkruise/kruise/pkg/util"
 
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -433,7 +433,7 @@ func TestValidateUpdatePodForPub(t *testing.T) {
 			podRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(cs.newPod())),
 			}
-			req := newAdmission(admissionv1beta1.Update, podRaw, oldPodRaw, cs.subresource)
+			req := newAdmission(admissionv1.Update, podRaw, oldPodRaw, cs.subresource)
 			req.Options = runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(metav1.UpdateOptions{})),
 			}
@@ -586,7 +586,7 @@ func TestValidateEvictPodForPub(t *testing.T) {
 			evictionRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(cs.eviction())),
 			}
-			req := newAdmission(admissionv1beta1.Create, evictionRaw, runtime.RawExtension{}, cs.subresource)
+			req := newAdmission(admissionv1.Create, evictionRaw, runtime.RawExtension{}, cs.subresource)
 			allow, _, err := podHandler.podUnavailableBudgetValidatingPod(context.TODO(), req)
 			if err != nil {
 				t.Errorf("Pub validate pod failed: %s", err.Error())
@@ -722,7 +722,7 @@ func TestValidateDeletePodForPub(t *testing.T) {
 			podRaw := runtime.RawExtension{
 				Raw: []byte(util.DumpJSON(cs.newPod())),
 			}
-			req := newAdmission(admissionv1beta1.Delete, podRaw, runtime.RawExtension{}, cs.subresource)
+			req := newAdmission(admissionv1.Delete, podRaw, runtime.RawExtension{}, cs.subresource)
 			req.AdmissionRequest.Options = deletionRaw
 			allow, _, err := podHandler.podUnavailableBudgetValidatingPod(context.TODO(), req)
 			if err != nil {
@@ -742,14 +742,14 @@ func TestValidateDeletePodForPub(t *testing.T) {
 	}
 }
 
-func newAdmission(op admissionv1beta1.Operation, object, oldObject runtime.RawExtension, subResource string) admission.Request {
+func newAdmission(op admissionv1.Operation, object, oldObject runtime.RawExtension, subResource string) admission.Request {
 	return admission.Request{
 		AdmissionRequest: newAdmissionRequest(op, object, oldObject, subResource),
 	}
 }
 
-func newAdmissionRequest(op admissionv1beta1.Operation, object, oldObject runtime.RawExtension, subResource string) admissionv1beta1.AdmissionRequest {
-	return admissionv1beta1.AdmissionRequest{
+func newAdmissionRequest(op admissionv1.Operation, object, oldObject runtime.RawExtension, subResource string) admissionv1.AdmissionRequest {
+	return admissionv1.AdmissionRequest{
 		Resource:    metav1.GroupVersionResource{Group: corev1.SchemeGroupVersion.Group, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"},
 		Operation:   op,
 		Object:      object,

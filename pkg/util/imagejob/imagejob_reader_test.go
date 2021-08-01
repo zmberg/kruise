@@ -61,15 +61,15 @@ func TestMain(m *testing.M) {
 }
 
 // StartTestManager adds recFn
-func StartTestManager(mgr manager.Manager, g *gomega.GomegaWithT) (chan struct{}, *sync.WaitGroup) {
-	stop := make(chan struct{})
+func StartTestManager(mgr manager.Manager, g *gomega.GomegaWithT) (context.Context, context.CancelFunc, *sync.WaitGroup) {
+	cxt, cancel := context.WithCancel(context.Background())
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		g.Expect(mgr.Start(stop)).NotTo(gomega.HaveOccurred())
+		g.Expect(mgr.Start(cxt)).NotTo(gomega.HaveOccurred())
 	}()
-	return stop, wg
+	return cxt, cancel, wg
 }
 
 var (
@@ -195,12 +195,12 @@ func TestAll(t *testing.T) {
 		}
 	}
 
-	stopMgr, mgrStopped := StartTestManager(mgr, g)
+	cxt, cancel, mgrStopped := StartTestManager(mgr, g)
 	defer func() {
-		close(stopMgr)
+		cancel()
 		mgrStopped.Wait()
 	}()
-	mgr.GetCache().WaitForCacheSync(stopMgr)
+	mgr.GetCache().WaitForCacheSync(cxt)
 
 	// Test GetNodeImagesForJob
 	testGetNodeImagesForJob(g)

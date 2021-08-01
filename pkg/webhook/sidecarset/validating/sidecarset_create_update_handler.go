@@ -19,6 +19,7 @@ package validating
 import (
 	"context"
 	"fmt"
+	admissionv1 "k8s.io/api/admission/v1"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -26,7 +27,6 @@ import (
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	"github.com/openkruise/kruise/pkg/util"
 
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	genericvalidation "k8s.io/apimachinery/pkg/api/validation"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -219,7 +219,7 @@ func validateContainersForSidecarSet(
 		},
 	}
 
-	allErrs = append(allErrs, corevalidation.ValidatePod(fakePod)...)
+	allErrs = append(allErrs, corevalidation.ValidatePodSpec(&fakePod.Spec, &fakePod.ObjectMeta, fldPath.Child("spec"), corevalidation.PodValidationOptions{})...)
 
 	return allErrs
 }
@@ -341,10 +341,10 @@ func (h *SidecarSetCreateUpdateHandler) Handle(ctx context.Context, req admissio
 	}
 	var oldSidecarSet *appsv1alpha1.SidecarSet
 	//when Operation is update, decode older object
-	if req.AdmissionRequest.Operation == admissionv1beta1.Update {
+	if req.AdmissionRequest.Operation == admissionv1.Update {
 		oldSidecarSet = new(appsv1alpha1.SidecarSet)
 		if err := h.Decoder.Decode(
-			admission.Request{AdmissionRequest: admissionv1beta1.AdmissionRequest{Object: req.AdmissionRequest.OldObject}},
+			admission.Request{AdmissionRequest: admissionv1.AdmissionRequest{Object: req.AdmissionRequest.OldObject}},
 			oldSidecarSet); err != nil {
 			return admission.Errored(http.StatusBadRequest, err)
 		}

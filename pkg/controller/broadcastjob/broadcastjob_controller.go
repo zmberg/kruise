@@ -21,6 +21,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
+	"k8s.io/kubernetes/pkg/scheduler/framework"
+	pluginhelper "k8s.io/kubernetes/pkg/scheduler/framework/plugins/helper"
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/nodeaffinity"
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/nodename"
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/noderesources"
+	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/nodeunschedulable"
 	"sync"
 	"time"
 
@@ -43,8 +50,6 @@ import (
 	"k8s.io/klog"
 	kubecontroller "k8s.io/kubernetes/pkg/controller"
 	daemonsetutil "k8s.io/kubernetes/pkg/controller/daemon/util"
-	"k8s.io/kubernetes/pkg/scheduler/algorithm/predicates"
-	schedulernodeinfo "k8s.io/kubernetes/pkg/scheduler/nodeinfo"
 	"k8s.io/utils/integer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -143,7 +148,7 @@ type ReconcileBroadcastJob struct {
 
 // Reconcile reads that state of the cluster for a BroadcastJob object and makes changes based on the state read
 // and what is in the BroadcastJob.Spec
-func (r *ReconcileBroadcastJob) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileBroadcastJob) Reconcile(cxt context.Context, request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the BroadcastJob instance
 	job := &appsv1alpha1.BroadcastJob{}
 	err := r.Get(context.TODO(), request.NamespacedName, job)
@@ -587,47 +592,58 @@ func labelsAsMap(job *appsv1alpha1.BroadcastJob) map[string]string {
 //   - CheckNodeUnschedulablePredicate: check if the pod can tolerate node unschedulable
 //   - PodFitsResources: checks if a node has sufficient resources, such as cpu, memory, gpu, opaque int resources etc to run a pod.
 func checkNodeFitness(pod *corev1.Pod, node *corev1.Node) (bool, error) {
-	nodeInfo := schedulernodeinfo.NewNodeInfo()
+	nodeInfo := framework.NewNodeInfo()
 	_ = nodeInfo.SetNode(node)
 
-	fit, reasons, err := predicates.PodFitsHost(pod, nil, nodeInfo)
-	if err != nil || !fit {
-		logPredicateFailedReason(reasons, node)
-		return false, err
+	if !nodename.Fits(pod, nodeInfo) {
+		return logPredicateFailedReason(node, framework.NewStatus(framework.UnschedulableAndUnresolvable, nodename.ErrReason))
 	}
 
-	fit, reasons, err = predicates.PodMatchNodeSelector(pod, nil, nodeInfo)
-	if err != nil || !fit {
-		logPredicateFailedReason(reasons, node)
-		return false, err
+	if !pluginhelper.PodMatchesNodeSelectorAndAffinityTerms(pod, node) {
+		return logPredicateFailedReason(node, framework.NewStatus(framework.UnschedulableAndUnresolvable, nodeaffinity.ErrReasonPod))
 	}
 
-	fit, reasons, err = predicates.PodToleratesNodeTaints(pod, nil, nodeInfo)
-	if err != nil || !fit {
-		logPredicateFailedReason(reasons, node)
-		return false, err
+	filterPredicate := func(t *corev1.Taint) bool {
+		// PodToleratesNodeTaints is only interested in NoSchedule and NoExecute taints.
+		return t.Effect == corev1.TaintEffectNoSchedule || t.Effect == corev1.TaintEffectNoExecute
+	}
+	taint, isUntolerated := v1helper.FindMatchingUntoleratedTaint(node.Spec.Taints, pod.Spec.Tolerations, filterPredicate)
+	if isUntolerated {
+		errReason := fmt.Sprintf("node(s) had taint {%s: %s}, that the pod didn't tolerate",
+			taint.Key, taint.Value)
+		return logPredicateFailedReason(node, framework.NewStatus(framework.UnschedulableAndUnresolvable, errReason))
 	}
 
-	fit, reasons, err = predicates.CheckNodeUnschedulablePredicate(pod, nil, nodeInfo)
-	if err != nil || !fit {
-		logPredicateFailedReason(reasons, node)
-		return false, err
+	// If pod tolerate unschedulable taint, it's also tolerate `node.Spec.Unschedulable`.
+	podToleratesUnschedulable := v1helper.TolerationsTolerateTaint(pod.Spec.Tolerations, &corev1.Taint{
+		Key:    corev1.TaintNodeUnschedulable,
+		Effect: corev1.TaintEffectNoSchedule,
+	})
+	if nodeInfo.Node().Spec.Unschedulable && !podToleratesUnschedulable {
+		return logPredicateFailedReason(node, framework.NewStatus(framework.UnschedulableAndUnresolvable, nodeunschedulable.ErrReasonUnschedulable))
 	}
-	fit, reasons, err = predicates.PodFitsResources(pod, nil, nodeInfo)
-	if err != nil || !fit {
-		logPredicateFailedReason(reasons, node)
-		return false, err
+
+	insufficientResources := noderesources.Fits(pod, nodeInfo)
+	if len(insufficientResources) != 0 {
+		// We will keep all failure reasons.
+		failureReasons := make([]string, 0, len(insufficientResources))
+		for _, r := range insufficientResources {
+			failureReasons = append(failureReasons, r.Reason)
+		}
+		return logPredicateFailedReason(node, framework.NewStatus(framework.Unschedulable, failureReasons...))
 	}
+
 	return true, nil
 }
 
-func logPredicateFailedReason(reasons []predicates.PredicateFailureReason, node *corev1.Node) {
-	if len(reasons) == 0 {
-		return
+func logPredicateFailedReason(node *corev1.Node, status *framework.Status) (bool, error) {
+	if status.IsSuccess() {
+		return true, nil
 	}
-	for _, reason := range reasons {
-		klog.Errorf("Failed predicate on node %s : %s ", node.Name, reason.GetReason())
+	for _, reason := range status.Reasons() {
+		klog.Errorf("Failed predicate on node %s : %s ", node.Name, reason)
 	}
+	return status.IsSuccess(), status.AsError()
 }
 
 // NewMockPod creates a new mock pod

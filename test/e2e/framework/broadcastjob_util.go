@@ -17,6 +17,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	kruiseclientset "github.com/openkruise/kruise/pkg/client/clientset/versioned"
 	v1 "k8s.io/api/core/v1"
@@ -39,15 +40,15 @@ func NewBroadcastJobTester(c clientset.Interface, kc kruiseclientset.Interface, 
 }
 
 func (t *BroadcastJobTester) CreateBroadcastJob(job *appsv1alpha1.BroadcastJob) (*appsv1alpha1.BroadcastJob, error) {
-	return t.kc.AppsV1alpha1().BroadcastJobs(t.ns).Create(job)
+	return t.kc.AppsV1alpha1().BroadcastJobs(t.ns).Create(context.TODO(), job, metav1.CreateOptions{})
 }
 
 func (t *BroadcastJobTester) GetBroadcastJob(name string) (*appsv1alpha1.BroadcastJob, error) {
-	return t.kc.AppsV1alpha1().BroadcastJobs(t.ns).Get(name, metav1.GetOptions{})
+	return t.kc.AppsV1alpha1().BroadcastJobs(t.ns).Get(context.TODO(), name, metav1.GetOptions{})
 }
 
 func (t *BroadcastJobTester) GetPodsOfJob(job *appsv1alpha1.BroadcastJob) (pods []*v1.Pod, err error) {
-	podList, err := t.c.CoreV1().Pods(t.ns).List(metav1.ListOptions{})
+	podList, err := t.c.CoreV1().Pods(t.ns).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, err
 	}

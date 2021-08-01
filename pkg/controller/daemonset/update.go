@@ -239,7 +239,7 @@ func (dsc *ReconcileDaemonSet) getUnavailableNumbers(ds *appsv1alpha1.DaemonSet,
 		if !CanNodeBeDeployed(node, ds) {
 			continue
 		}
-		wantToRun, _, _, err := NodeShouldRunDaemonPod(dsc.client, node, ds)
+		wantToRun, _, err := NodeShouldRunDaemonPod(node, ds)
 		if err != nil {
 			return -1, -1, err
 		}
@@ -569,7 +569,7 @@ func (dsc *ReconcileDaemonSet) getSurgeNumbers(ds *appsv1alpha1.DaemonSet, nodeT
 		if !CanNodeBeDeployed(node, ds) {
 			continue
 		}
-		wantToRun, _, _, err := NodeShouldRunDaemonPod(dsc.client, node, ds)
+		wantToRun, _, err := NodeShouldRunDaemonPod(node, ds)
 		if err != nil {
 			return -1, -1, err
 		}
@@ -610,7 +610,7 @@ func (dsc *ReconcileDaemonSet) getNodesShouldRunDaemonPod(ds *appsv1alpha1.Daemo
 		if !CanNodeBeDeployed(node, ds) {
 			continue
 		}
-		wantToRun, _, shouldContinueRunning, err := NodeShouldRunDaemonPod(dsc.client, node, ds)
+		wantToRun, shouldContinueRunning, err := NodeShouldRunDaemonPod(node, ds)
 		if err != nil {
 			return nil, nil, err
 		}

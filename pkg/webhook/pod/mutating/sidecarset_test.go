@@ -28,7 +28,7 @@ import (
 	"github.com/openkruise/kruise/pkg/control/sidecarcontrol"
 	"github.com/openkruise/kruise/pkg/util"
 
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -374,7 +374,7 @@ func testPodHasNoMatchedSidecarSet(t *testing.T, sidecarSetIn *appsv1alpha1.Side
 	decoder, _ := admission.NewDecoder(scheme.Scheme)
 	client := fake.NewFakeClient(sidecarSetIn)
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	_ = podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 
 	if len(podOut.Spec.Containers) != len(podIn.Spec.Containers) {
@@ -416,7 +416,7 @@ func doMergeSidecarSecretsTest(t *testing.T, sidecarSetIn *appsv1alpha1.SidecarS
 	decoder, _ := admission.NewDecoder(scheme.Scheme)
 	client := fake.NewFakeClient(sidecarSetIn)
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	_ = podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 
 	if len(podOut.Spec.ImagePullSecrets) != len(podIn.Spec.ImagePullSecrets)+len(sidecarSetIn.Spec.ImagePullSecrets)-repeat {
@@ -435,7 +435,7 @@ func testSidecarSetPodInjectPolicy(t *testing.T, sidecarSetIn *appsv1alpha1.Side
 	client := fake.NewFakeClient(sidecarSetIn)
 	podOut := podIn.DeepCopy()
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -512,7 +512,7 @@ func testSidecarVolumesAppend(t *testing.T, sidecarSetIn *appsv1alpha1.SidecarSe
 	client := fake.NewFakeClient(sidecarSetIn)
 	podOut := podIn.DeepCopy()
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -660,7 +660,7 @@ func testPodVolumeMountsAppend(t *testing.T, sidecarSetIn *appsv1alpha1.SidecarS
 			client := fake.NewFakeClient(cs.getSidecarSets())
 			podOut := podIn.DeepCopy()
 			podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-			req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+			req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 			err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 			if err != nil {
 				t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -692,7 +692,7 @@ func testSidecarSetTransferEnv(t *testing.T, sidecarSetIn *appsv1alpha1.SidecarS
 	client := fake.NewFakeClient(sidecarSetIn)
 	podOut := podIn.DeepCopy()
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -721,7 +721,7 @@ func testSidecarSetHashInject(t *testing.T, sidecarSetIn1 *appsv1alpha1.SidecarS
 	client := fake.NewFakeClient(sidecarSetIn1, sidecarSetIn2, sidecarSetIn3)
 	podOut := podIn.DeepCopy()
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -752,7 +752,7 @@ func testSidecarSetNameInject(t *testing.T, sidecarSetIn1, sidecarSetIn3 *appsv1
 	client := fake.NewFakeClient(sidecarSetIn1, sidecarSetIn3)
 	podOut := podIn.DeepCopy()
 	podHandler := &PodCreateHandler{Decoder: decoder, Client: client}
-	req := newAdmission(admissionv1beta1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
+	req := newAdmission(admissionv1.Create, runtime.RawExtension{}, runtime.RawExtension{}, "")
 	err := podHandler.sidecarsetMutatingPod(context.Background(), req, podOut)
 	if err != nil {
 		t.Fatalf("inject sidecar into pod failed, err: %v", err)
@@ -879,14 +879,14 @@ func TestMergeSidecarContainers(t *testing.T) {
 	}
 }
 
-func newAdmission(op admissionv1beta1.Operation, object, oldObject runtime.RawExtension, subResource string) admission.Request {
+func newAdmission(op admissionv1.Operation, object, oldObject runtime.RawExtension, subResource string) admission.Request {
 	return admission.Request{
 		AdmissionRequest: newAdmissionRequest(op, object, oldObject, subResource),
 	}
 }
 
-func newAdmissionRequest(op admissionv1beta1.Operation, object, oldObject runtime.RawExtension, subResource string) admissionv1beta1.AdmissionRequest {
-	return admissionv1beta1.AdmissionRequest{
+func newAdmissionRequest(op admissionv1.Operation, object, oldObject runtime.RawExtension, subResource string) admissionv1.AdmissionRequest {
+	return admissionv1.AdmissionRequest{
 		Resource:    metav1.GroupVersionResource{Group: corev1.SchemeGroupVersion.Group, Version: corev1.SchemeGroupVersion.Version, Resource: "pods"},
 		Operation:   op,
 		Object:      object,

@@ -17,6 +17,7 @@ limitations under the License.
 package webhook
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -107,19 +108,17 @@ func SetupWithManager(mgr manager.Manager) error {
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;update;patch
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=get;list;watch;update;patch
 
-func Initialize(mgr manager.Manager, stopCh <-chan struct{}) error {
-	cli := &client.DelegatingClient{
-		Reader:       mgr.GetAPIReader(),
-		Writer:       mgr.GetClient(),
-		StatusClient: mgr.GetClient(),
+func Initialize(mgr manager.Manager, cxt context.Context) error {
+	clientInput := client.NewDelegatingClientInput{
+		Client: mgr.GetClient(),
 	}
-
+	cli, err := client.NewDelegatingClient(clientInput)
 	c, err := webhookcontroller.New(mgr.GetConfig(), cli, HandlerMap)
 	if err != nil {
 		return err
 	}
 	go func() {
-		c.Start(stopCh)
+		c.Start(cxt.Done())
 	}()
 
 	timer := time.NewTimer(time.Second * 20)

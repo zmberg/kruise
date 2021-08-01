@@ -70,7 +70,7 @@ func TestReconcileAdvancedJobCreateBroadcastJob(t *testing.T) {
 		},
 	}
 
-	_, err := reconcileJob.Reconcile(request)
+	_, err := reconcileJob.Reconcile(context.TODO(), request)
 	assert.NoError(t, err)
 	retrievedJob := &appsv1alpha1.AdvancedCronJob{}
 	err = reconcileJob.Get(context.TODO(), request.NamespacedName, retrievedJob)
@@ -109,7 +109,7 @@ func TestReconcileAdvancedJobCreateJob(t *testing.T) {
 		},
 	}
 
-	_, err := reconcileJob.Reconcile(request)
+	_, err := reconcileJob.Reconcile(context.TODO(), request)
 	assert.NoError(t, err)
 	retrievedJob := &appsv1alpha1.AdvancedCronJob{}
 	err = reconcileJob.Get(context.TODO(), request.NamespacedName, retrievedJob)

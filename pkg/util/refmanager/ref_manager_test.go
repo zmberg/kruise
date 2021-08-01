@@ -88,7 +88,7 @@ func Test(t *testing.T) {
 		},
 	}
 
-	getOwner = func(owner metav1.Object, schema *runtime.Scheme, c client.Client) (runtime.Object, error) {
+	getLatestOwner = func(owner metav1.Object, schema *runtime.Scheme, c client.Client) (runtime.Object, error) {
 		return sts, nil
 	}
 

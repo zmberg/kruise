@@ -151,9 +151,9 @@ func main() {
 
 	// +kubebuilder:scaffold:builder
 
-	stopCh := ctrl.SetupSignalHandler()
+	cxt := ctrl.SetupSignalHandler()
 	setupLog.Info("initialize webhook")
-	if err := webhook.Initialize(mgr, stopCh); err != nil {
+	if err := webhook.Initialize(mgr, cxt); err != nil {
 		setupLog.Error(err, "unable to initialize webhook")
 		os.Exit(1)
 	}
@@ -178,7 +178,7 @@ func main() {
 	}()
 
 	setupLog.Info("starting manager")
-	if err := mgr.Start(stopCh); err != nil {
+	if err := mgr.Start(cxt); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}

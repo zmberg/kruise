@@ -18,6 +18,7 @@ limitations under the License.
 package statefulset
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -107,19 +108,20 @@ func Add(mgr manager.Manager) error {
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) (reconcile.Reconciler, error) {
 	cacher := mgr.GetCache()
-	statefulSetInformer, err := cacher.GetInformerForKind(controllerKind)
+	cxt := context.Background()
+	statefulSetInformer, err := cacher.GetInformerForKind(cxt, controllerKind)
 	if err != nil {
 		return nil, err
 	}
-	podInformer, err := cacher.GetInformerForKind(v1.SchemeGroupVersion.WithKind("Pod"))
+	podInformer, err := cacher.GetInformerForKind(cxt, v1.SchemeGroupVersion.WithKind("Pod"))
 	if err != nil {
 		return nil, err
 	}
-	pvcInformer, err := cacher.GetInformerForKind(v1.SchemeGroupVersion.WithKind("PersistentVolumeClaim"))
+	pvcInformer, err := cacher.GetInformerForKind(cxt, v1.SchemeGroupVersion.WithKind("PersistentVolumeClaim"))
 	if err != nil {
 		return nil, err
 	}
-	revInformer, err := cacher.GetInformerForKind(appsv1.SchemeGroupVersion.WithKind("ControllerRevision"))
+	revInformer, err := cacher.GetInformerForKind(cxt, appsv1.SchemeGroupVersion.WithKind("ControllerRevision"))
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +227,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 // Reconcile reads that state of the cluster for a StatefulSet object and makes changes based on the state read
 // and what is in the StatefulSet.Spec
 // Automatically generate RBAC rules to allow the Controller to read and write Pods
-func (ssc *ReconcileStatefulSet) Reconcile(request reconcile.Request) (res reconcile.Result, retErr error) {
+func (ssc *ReconcileStatefulSet) Reconcile(cxt context.Context, request reconcile.Request) (res reconcile.Result, retErr error) {
 	key := request.NamespacedName.String()
 	namespace := request.Namespace
 	name := request.Name
@@ -287,7 +289,7 @@ func (ssc *ReconcileStatefulSet) adoptOrphanRevisions(set *appsv1beta1.StatefulS
 		}
 	}
 	if len(orphanRevisions) > 0 {
-		fresh, err := ssc.kruiseClient.AppsV1beta1().StatefulSets(set.Namespace).Get(set.Name, metav1.GetOptions{})
+		fresh, err := ssc.kruiseClient.AppsV1beta1().StatefulSets(set.Namespace).Get(context.TODO(), set.Name, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -320,7 +322,7 @@ func (ssc *ReconcileStatefulSet) getPodsForStatefulSet(set *appsv1beta1.Stateful
 	// If any adoptions are attempted, we should first recheck for deletion with
 	// an uncached quorum read sometime after listing Pods (see #42639).
 	canAdoptFunc := kubecontroller.RecheckDeletionTimestamp(func() (metav1.Object, error) {
-		fresh, err := ssc.kruiseClient.AppsV1beta1().StatefulSets(set.Namespace).Get(set.Name, metav1.GetOptions{})
+		fresh, err := ssc.kruiseClient.AppsV1beta1().StatefulSets(set.Namespace).Get(context.TODO(), set.Name, metav1.GetOptions{})
 		if err != nil {
 			return nil, err
 		}

@@ -181,7 +181,7 @@ func testUpdateWhenUseNotUpdateStrategy(t *testing.T, sidecarSetInput *appsv1alp
 		updateExpectations: expectations.NewUpdateExpectations(sidecarcontrol.RevisionAdapterImpl),
 		processor:          NewSidecarSetProcessor(fakeClient, exps, record.NewFakeRecorder(10)),
 	}
-	if _, err := reconciler.Reconcile(request); err != nil {
+	if _, err := reconciler.Reconcile(context.TODO(), request); err != nil {
 		t.Errorf("reconcile failed, err: %v", err)
 	}
 
@@ -216,7 +216,7 @@ func testUpdateWhenSidecarSetPaused(t *testing.T, sidecarSetInput *appsv1alpha1.
 		updateExpectations: exps,
 		processor:          NewSidecarSetProcessor(fakeClient, exps, record.NewFakeRecorder(10)),
 	}
-	if _, err := reconciler.Reconcile(request); err != nil {
+	if _, err := reconciler.Reconcile(context.TODO(), request); err != nil {
 		t.Errorf("reconcile failed, err: %v", err)
 	}
 
@@ -251,7 +251,7 @@ func testUpdateWhenMaxUnavailableNotZero(t *testing.T, sidecarSetInput *appsv1al
 		updateExpectations: exps,
 		processor:          NewSidecarSetProcessor(fakeClient, exps, record.NewFakeRecorder(10)),
 	}
-	if _, err := reconciler.Reconcile(request); err != nil {
+	if _, err := reconciler.Reconcile(context.TODO(), request); err != nil {
 		t.Errorf("reconcile failed, err: %v", err)
 	}
 
@@ -287,7 +287,7 @@ func testUpdateWhenPartitionFinished(t *testing.T, sidecarSetInput *appsv1alpha1
 		updateExpectations: exps,
 		processor:          NewSidecarSetProcessor(fakeClient, exps, record.NewFakeRecorder(10)),
 	}
-	if _, err := reconciler.Reconcile(request); err != nil {
+	if _, err := reconciler.Reconcile(context.TODO(), request); err != nil {
 		t.Errorf("reconcile failed, err: %v", err)
 	}
 
@@ -323,7 +323,7 @@ func testRemoveSidecarSet(t *testing.T, sidecarSetInput *appsv1alpha1.SidecarSet
 		updateExpectations: exps,
 		processor:          NewSidecarSetProcessor(fakeClient, exps, record.NewFakeRecorder(10)),
 	}
-	if _, err := reconciler.Reconcile(request); err != nil {
+	if _, err := reconciler.Reconcile(context.TODO(), request); err != nil {
 		t.Errorf("reconcile failed, err: %v", err)
 	}
 

@@ -22,10 +22,9 @@ import (
 
 	"github.com/openkruise/kruise/pkg/webhook/util/deletionprotection"
 
-	"k8s.io/klog"
-
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/inject"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
@@ -42,7 +41,7 @@ var _ admission.Handler = &NamespaceHandler{}
 
 // Handle handles admission requests.
 func (h *NamespaceHandler) Handle(ctx context.Context, req admission.Request) admission.Response {
-	if req.AdmissionRequest.Operation != admissionv1beta1.Delete || req.AdmissionRequest.SubResource != "" {
+	if req.AdmissionRequest.Operation != admissionv1.Delete || req.AdmissionRequest.SubResource != "" {
 		return admission.ValidationResponse(true, "")
 	}
 	if len(req.OldObject.Raw) == 0 {

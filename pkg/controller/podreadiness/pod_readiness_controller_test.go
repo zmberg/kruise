@@ -46,11 +46,11 @@ func TestReconcile(t *testing.T) {
 	fakeClient := fake.NewFakeClientWithScheme(clientgoscheme.Scheme, pod0, pod1)
 	reconciler := &ReconcilePodReadiness{Client: fakeClient}
 
-	_, err := reconciler.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Namespace: pod0.Namespace, Name: pod0.Name}})
+	_, err := reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Namespace: pod0.Namespace, Name: pod0.Name}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = reconciler.Reconcile(reconcile.Request{NamespacedName: types.NamespacedName{Namespace: pod1.Namespace, Name: pod1.Name}})
+	_, err = reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Namespace: pod1.Namespace, Name: pod1.Name}})
 	if err != nil {
 		t.Fatal(err)
 	}
