@@ -22,13 +22,13 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 
-	"github.com/openkruise/kruise/pkg/util/configuration"
-
-	ctrlUtil "github.com/openkruise/kruise/pkg/controller/util"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
 	appsv1beta1 "github.com/openkruise/kruise/apis/apps/v1beta1"
+	ctrlUtil "github.com/openkruise/kruise/pkg/controller/util"
 	"github.com/openkruise/kruise/pkg/util"
 	utilclient "github.com/openkruise/kruise/pkg/util/client"
 	"github.com/openkruise/kruise/pkg/util/controllerfinder"
@@ -55,6 +55,11 @@ import (
 
 func init() {
 	flag.IntVar(&concurrentReconciles, "persistentpodstate-workers", concurrentReconciles, "Max concurrent workers for PersistentPodState controller.")
+
+	watchedWorkload = sync.Map{}
+	watchedWorkload.LoadOrStore(controllerfinder.ControllerKindSS.String(), struct{}{})
+	watchedWorkload.LoadOrStore(controllerfinder.ControllerKruiseKindSS.String(), struct{}{})
+	watchedWorkload.LoadOrStore(controllerfinder.ControllerKruiseOldKindSS.String(), struct{}{})
 }
 
 var (
@@ -67,6 +72,10 @@ var (
 	KruiseKindPps = appsv1alpha1.SchemeGroupVersion.WithKind("PersistentPodState")
 	// AutoGeneratePersistentPodStatePrefix auto generate PersistentPodState crd
 	AutoGeneratePersistentPodStatePrefix = "generate#"
+
+	watchedWorkload   sync.Map
+	runtimeController controller.Controller
+	workloadHandler   handler.EventHandler
 )
 
 /**
@@ -122,20 +131,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err = c.Watch(&source.Kind{Type: &appsv1beta1.StatefulSet{}}, &enqueueRequestForKruiseStatefulSet{reader: mgr.GetClient()}); err != nil {
 		return err
 	}
-
-	whiteList, err := configuration.GetPPSWatchWatchCustomWorkloadWhiteList(mgr.GetClient())
-	if err != nil {
-		return err
-	}
-	if whiteList != nil {
-		workloadHandler := &enqueueRequestForStatefulSetLike{reader: mgr.GetClient()}
-		for _, workload := range whiteList.Workloads {
-			if _, err := ctrlUtil.AddWatcherDynamically(c, workloadHandler, workload); err != nil {
-				return err
-			}
-		}
-	}
-
+	runtimeController = c
+	workloadHandler = &enqueueRequestForStatefulSetLike{reader: mgr.GetClient()}
 	return nil
 }
 
@@ -186,8 +183,24 @@ func (r *ReconcilePersistentPodState) Reconcile(_ context.Context, req ctrl.Requ
 		// Error reading the object - requeue the request.
 		return ctrl.Result{}, err
 	}
-
 	klog.V(3).Infof("begin to reconcile PersistentPodState(%s/%s)", persistentPodState.Namespace, persistentPodState.Name)
+
+	//  If workload watcher does not exist, then add the watcher dynamically
+	workloadRef := persistentPodState.Spec.TargetReference
+	workloadGVK := schema.FromAPIVersionAndKind(workloadRef.APIVersion, workloadRef.Kind)
+	_, exists := watchedWorkload.Load(workloadGVK.String())
+	if !exists {
+		succeeded, err := ctrlUtil.AddWatcherDynamically(runtimeController, workloadHandler, workloadGVK)
+		if err != nil {
+			return ctrl.Result{}, err
+		} else if succeeded {
+			watchedWorkload.LoadOrStore(workloadGVK.String(), struct{}{})
+			klog.Infof("Rollout controller begin to watch workload type: %s", workloadGVK.String())
+			// return, and wait informer cache to be synced
+			return ctrl.Result{}, nil
+		}
+	}
+
 	pods, innerSts, err := r.getPodsAndStatefulset(persistentPodState)
 	if err != nil {
 		return ctrl.Result{}, err

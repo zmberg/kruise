@@ -21,6 +21,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	appsv1alpha1 "github.com/openkruise/kruise/apis/apps/v1alpha1"
+
 	kruiseappsv1beta1 "github.com/openkruise/kruise/apis/apps/v1beta1"
 	"github.com/openkruise/kruise/pkg/util/configuration"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -31,7 +35,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
-	"time"
 
 	"github.com/onsi/gomega"
 	kruiseclientset "github.com/openkruise/kruise/pkg/client/clientset/versioned"
@@ -255,6 +258,31 @@ func (s *PersistentPodStateTester) CreateStatefulsetLikeCRD(namespace string) {
 	if !errors.IsAlreadyExists(err) {
 		gomega.Expect(err).NotTo(gomega.HaveOccurred())
 	}
+}
+
+func (s *PersistentPodStateTester) CreateStatefulsetLikePPS(sts *StatefulSetLikeTest) {
+	pps := &appsv1alpha1.PersistentPodState{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      sts.Name,
+			Namespace: sts.Namespace,
+		},
+		Spec: appsv1alpha1.PersistentPodStateSpec{
+			TargetReference: appsv1alpha1.TargetReference{
+				APIVersion: sts.APIVersion,
+				Kind:       sts.Kind,
+				Name:       sts.Name,
+			},
+			RequiredPersistentTopology: &appsv1alpha1.NodeTopologyTerm{
+				NodeTopologyKeys: []string{"test"},
+			},
+		},
+	}
+	_, err := s.kc.AppsV1alpha1().PersistentPodStates(pps.Namespace).Create(context.TODO(), pps, metav1.CreateOptions{})
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	time.Sleep(time.Second * 3)
+	err = s.kc.AppsV1alpha1().PersistentPodStates(pps.Namespace).Delete(context.TODO(), pps.Name, metav1.DeleteOptions{})
+	gomega.Expect(err).NotTo(gomega.HaveOccurred())
+	time.Sleep(time.Second)
 }
 
 func (s *PersistentPodStateTester) CreateStatefulsetLike(sts *StatefulSetLikeTest) *StatefulSetLikeTest {

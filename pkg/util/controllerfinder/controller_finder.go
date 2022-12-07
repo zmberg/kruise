@@ -159,12 +159,13 @@ func (r *ControllerFinder) Finders() []PodControllerFinder {
 }
 
 var (
-	ControllerKindRS       = apps.SchemeGroupVersion.WithKind("ReplicaSet")
-	ControllerKindSS       = apps.SchemeGroupVersion.WithKind("StatefulSet")
-	ControllerKindRC       = corev1.SchemeGroupVersion.WithKind("ReplicationController")
-	ControllerKindDep      = apps.SchemeGroupVersion.WithKind("Deployment")
-	ControllerKruiseKindCS = appsv1alpha1.SchemeGroupVersion.WithKind("CloneSet")
-	ControllerKruiseKindSS = appsv1beta1.SchemeGroupVersion.WithKind("StatefulSet")
+	ControllerKindRS          = apps.SchemeGroupVersion.WithKind("ReplicaSet")
+	ControllerKindSS          = apps.SchemeGroupVersion.WithKind("StatefulSet")
+	ControllerKindRC          = corev1.SchemeGroupVersion.WithKind("ReplicationController")
+	ControllerKindDep         = apps.SchemeGroupVersion.WithKind("Deployment")
+	ControllerKruiseKindCS    = appsv1alpha1.SchemeGroupVersion.WithKind("CloneSet")
+	ControllerKruiseKindSS    = appsv1beta1.SchemeGroupVersion.WithKind("StatefulSet")
+	ControllerKruiseOldKindSS = appsv1alpha1.SchemeGroupVersion.WithKind("StatefulSet")
 
 	validWorkloadList = []schema.GroupVersionKind{ControllerKindRS, ControllerKindSS, ControllerKindRC, ControllerKindDep, ControllerKruiseKindCS, ControllerKruiseKindSS}
 )
