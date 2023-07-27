@@ -154,7 +154,7 @@ func (s *PodUnavailableBudgetTester) NewBaseCloneSet(namespace string) *appsv1al
 					Containers: []corev1.Container{
 						{
 							Name:            "main",
-							Image:           imageutils.GetE2EImage(imageutils.Httpd),
+							Image:           "httpd:2.4.57",
 							ImagePullPolicy: corev1.PullIfNotPresent,
 						},
 					},

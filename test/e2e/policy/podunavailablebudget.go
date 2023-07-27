@@ -991,6 +991,7 @@ var _ = SIGDescribe("PodUnavailableBudget", func() {
 
 			//wait 20 seconds
 			ginkgo.By(fmt.Sprintf("check PodUnavailableBudget(%s/%s) Status", pub.Namespace, pub.Name))
+			time.Sleep(time.Hour)
 			expectStatus = &policyv1alpha1.PodUnavailableBudgetStatus{
 				UnavailableAllowed: 0,
 				DesiredAvailable:   8,
@@ -1006,7 +1007,7 @@ var _ = SIGDescribe("PodUnavailableBudget", func() {
 				return nowStatus
 			}, 30*time.Second, time.Second).Should(gomega.Equal(expectStatus))
 
-			time.Sleep(5 * time.Second)
+			time.Sleep(5 * time.Hour)
 			// check now pod
 			pods, err := sidecarTester.GetSelectorPods(cloneset.Namespace, cloneset.Spec.Selector)
 			gomega.Expect(err).NotTo(gomega.HaveOccurred())
