@@ -218,7 +218,19 @@ func (w *realWorkerPool) Sync(spec *appsv1beta1.ImageSpec, status *appsv1beta1.I
 		_, ok := w.pullWorkers[tagSpec.Tag]
 
 		if !ok {
-			worker := newPullWorker(w.name, tagSpec, spec.SandboxConfig, secrets, w.runtime, w, ref, w.eventRecorder)
+			fetchSecretNames := sets.NewString()
+			for _, obj := range tagSpec.PullSecrets {
+				fetchSecretNames.Insert(obj.Name)
+			}
+			tempSecrets, _ := w.secretManager.GetSecrets(tagSpec.PullSecrets)
+			// Compatible with older versions
+			for _, secret := range secrets {
+				if !fetchSecretNames.Has(secret.Name) {
+					tempSecrets = append(tempSecrets, secret)
+				}
+			}
+
+			worker := newPullWorker(w.name, tagSpec, spec.SandboxConfig, tempSecrets, w.runtime, w, ref, w.eventRecorder)
 			w.pullWorkers[tagSpec.Tag] = worker
 		}
 	}
