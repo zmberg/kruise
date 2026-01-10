@@ -94,6 +94,7 @@ func (r *realStatusUpdater) inconsistentStatus(cs *appsv1beta1.CloneSet, newStat
 
 func (r *realStatusUpdater) calculateStatus(cs *appsv1beta1.CloneSet, newStatus *appsv1beta1.CloneSetStatus, pods []*v1.Pod) {
 	coreControl := clonesetcore.New(cs)
+	klog.Infof("before cloneset(%s/%s) calculateStatus(%s)", cs.Namespace, cs.Name, util.DumpJSON(newStatus))
 	for _, pod := range pods {
 		newStatus.Replicas++
 		if coreControl.IsPodUpdateReady(pod, 0) {
@@ -124,8 +125,9 @@ func (r *realStatusUpdater) calculateStatus(cs *appsv1beta1.CloneSet, newStatus 
 	} else {
 		newStatus.ExpectedUpdatedReplicas = *cs.Spec.Replicas
 	}
-
+	klog.Infof("before cloneset(%s/%s) calculateProgressingStatus(%s)", cs.Namespace, cs.Name, util.DumpJSON(newStatus))
 	duration := r.calculateProgressingStatus(cs, newStatus)
+	klog.Infof("after cloneset(%s/%s) calculateProgressingStatus(%s)", cs.Namespace, cs.Name, util.DumpJSON(newStatus))
 	clonesetutils.DurationStore.Push(clonesetutils.GetControllerKey(cs), duration)
 }
 

@@ -27,7 +27,6 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/klog/v2"
-	imageutils "k8s.io/kubernetes/test/utils/image"
 
 	appspub "github.com/openkruise/kruise/apis/apps/pub"
 	appsv1beta1 "github.com/openkruise/kruise/apis/apps/v1beta1"
@@ -72,7 +71,7 @@ func (t *CloneSetTester) newCloneSet(name string, replicas int32) *appsv1beta1.C
 					Containers: []v1.Container{
 						{
 							Name:  "nginx",
-							Image: imageutils.GetE2EImage(imageutils.Nginx),
+							Image: "mirrors-ssl.aliyuncs.com/nginx:perl",
 							Env: []v1.EnvVar{
 								{Name: "test", Value: "foo"},
 							},

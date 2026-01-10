@@ -75,7 +75,7 @@ func (c *realControl) Update(cs *appsv1beta1.CloneSet,
 	}
 
 	if cs.Spec.UpdateStrategy.Type == appsv1beta1.OnDeleteCloneSetUpdateStrategyType {
-		klog.V(5).InfoS("CloneSet UpdateStrategy is OnDelete", "cloneSet", klog.KObj(cs))
+		klog.InfoS("CloneSet UpdateStrategy is OnDelete", "cloneSet", klog.KObj(cs))
 		return nil
 	}
 
